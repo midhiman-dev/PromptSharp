@@ -1,0 +1,43 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Run PromptSharp (Backend & Frontend)",
+			"type": "shell",
+			"command": "powershell.exe -Command \"Start-Process powershell -ArgumentList '-NoExit', '-Command', 'cd ${workspaceFolder}\\backend && npm install --no-fund --no-audit --prefer-offline && npm run dev' ; Start-Process powershell -ArgumentList '-NoExit', '-Command', 'cd ${workspaceFolder}\\frontend && npm install --no-fund --no-audit --prefer-offline && npm run dev'\"",
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "Install Dependencies Only",
+			"type": "shell", 
+			"command": "powershell.exe -Command \"cd ${workspaceFolder}\\backend && npm install --no-fund --no-audit --prefer-offline && cd ${workspaceFolder}\\frontend && npm install --no-fund --no-audit --prefer-offline\"",
+			"group": "build",
+			"problemMatcher": []
+		},
+		{
+			"label": "Run Backend Only",
+			"type": "shell",
+			"command": "powershell.exe -Command \"cd ${workspaceFolder}\\backend && npm run dev\"",
+			"group": "build",
+			"problemMatcher": []
+		},
+		{
+			"label": "Run Frontend Only",
+			"type": "shell",
+			"command": "powershell.exe -Command \"cd ${workspaceFolder}\\frontend && npm run dev\"",
+			"group": "build",
+			"problemMatcher": []
+		},
+		{
+			"label": "Clean and Reinstall Dependencies",
+			"type": "shell",
+			"command": "powershell.exe -Command \"npm cache clean --force && Remove-Item -Recurse -Force ${workspaceFolder}\\backend\\node_modules -ErrorAction SilentlyContinue && Remove-Item -Recurse -Force ${workspaceFolder}\\frontend\\node_modules -ErrorAction SilentlyContinue && cd ${workspaceFolder}\\backend && npm install --no-fund --no-audit --prefer-offline && cd ${workspaceFolder}\\frontend && npm install --no-fund --no-audit --prefer-offline\"",
+			"group": "build",
+			"problemMatcher": []
+		}
+	]
+}

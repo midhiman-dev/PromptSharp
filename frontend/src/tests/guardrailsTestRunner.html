@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PromptSharp Guardrails Tests</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    h1 {
+      color: #2563eb;
+      border-bottom: 2px solid #e5e7eb;
+      padding-bottom: 10px;
+    }
+    .test-container {
+      margin-top: 20px;
+    }
+    .test-case {
+      background-color: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 15px;
+    }
+    .test-prompt {
+      font-family: monospace;
+      background-color: #f3f4f6;
+      padding: 10px;
+      border-radius: 4px;
+      margin: 10px 0;
+    }
+    .pass {
+      color: #10b981;
+      font-weight: bold;
+    }
+    .fail {
+      color: #ef4444;
+      font-weight: bold;
+    }
+    .test-button {
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-top: 20px;
+    }
+    .test-button:hover {
+      background-color: #1d4ed8;
+    }
+    #results {
+      margin-top: 20px;
+      white-space: pre-wrap;
+      font-family: monospace;
+      background-color: #1e293b;
+      color: #f8fafc;
+      padding: 15px;
+      border-radius: 8px;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body>
+  <h1>PromptSharp Guardrails Test Suite</h1>
+  
+  <p>This page allows you to test the guardrails implementation for PromptSharp to ensure it properly detects toxicity, harmful intent, and PII.</p>
+  
+  <div class="test-container">
+    <h2>Run Tests</h2>
+    <p>Click the buttons below to run guardrails tests:</p>
+    <button id="run-tests" class="test-button">Run All Tests</button>
+    <button id="run-angry-email-tests" class="test-button" style="margin-left: 10px; background-color: #7c3aed;">Test Angry Email Cases</button>
+    <button id="run-api-tests" class="test-button" style="margin-left: 10px; background-color: #10b981;">Test API Integration</button>
+    
+    <h3>Manual Test</h3>
+    <p>You can also test a specific prompt:</p>
+    <textarea id="test-prompt" rows="4" style="width: 100%; padding: 8px;" placeholder="Enter a prompt to test..."></textarea>
+    <button id="test-single" class="test-button" style="margin-top: 10px;">Test This Prompt</button>
+    
+    <h3>Results</h3>
+    <div id="results">Test results will appear here...</div>
+  </div>
+
+  <script type="module">
+    import guardrails from '../services/guardrails.js';
+    
+    // Function to run a single test
+    async function testSinglePrompt(prompt) {
+      const result = await guardrails.validateInput(prompt);
+      
+      let output = `===== TESTING PROMPT =====\n`;
+      output += `Prompt: "${prompt}"\n\n`;
+      output += `Result: ${result.valid ? 'VALID ✅' : 'INVALID ❌'}\n\n`;
+      
+      if (!result.valid && result.issues) {
+        output += `Issues found:\n`;
+        result.issues.forEach(issue => {
+          output += `- ${issue.type} (${issue.severity}): ${issue.details}\n`;
+          
+          if (issue.type === 'toxicity' && issue.indicators) {
+            const indicators = issue.indicators;
+            
+            if (indicators.profanity) {
+              output += `  - Contains profanity\n`;
+            }
+            
+            if (indicators.toxicCategories) {
+              output += `  - Categories: ${Object.keys(indicators.toxicCategories).join(', ')}\n`;
+              // Show matched terms for each category
+              for (const [category, terms] of Object.entries(indicators.toxicCategories)) {
+                output += `    * ${category}: ${Array.isArray(terms) ? terms.join(', ') : terms}\n`;
+              }
+            }
+            
+            if (indicators.harmfulIntent) {
+              output += `  - Contains harmful intent patterns\n`;
+            }
+            
+            if (indicators.targetedNegative) {
+              output += `  - Contains targeted negative language\n`;
+            }
+            
+            if (indicators.negativeEmotions && indicators.negativeEmotions.length > 0) {
+              output += `  - Negative emotions: ${indicators.negativeEmotions.join(', ')}\n`;
+            }
+            
+            if (indicators.threats && indicators.threats.length > 0) {
+              output += `  - Threats: ${indicators.threats.join(', ')}\n`;
+            }
+          }
+          
+          if (issue.type === 'pii' && issue.matches) {
+            output += `  - Detected PII types: ${issue.detectedTypes && issue.detectedTypes.length > 0 ? issue.detectedTypes.join(', ') : 'none'}\n`;
+            output += `  - Matches:\n`;
+            for (const [type, matches] of Object.entries(issue.matches || {})) {
+              if (matches) {
+                output += `    * ${type}: ${Array.isArray(matches) ? matches.join(', ') : JSON.stringify(matches)}\n`;
+              }
+            }
+          }
+        });
+      } else if (result.valid) {
+        output += `No issues detected.\n`;
+      }
+      
+      return output;
+    }
+    
+    // Import test cases
+    import { testGuardrails } from './guardrailsTests.js';
+    import { testAngryEmailScenarios } from './angryEmailTests.js';
+    import { testApiGuardrails } from './apiGuardrailsTests.js';
+    
+    // Set up event listeners
+    document.getElementById('run-tests').addEventListener('click', async () => {
+      const resultsElement = document.getElementById('results');
+      resultsElement.textContent = 'Running tests...\n';
+      
+      // Redirect console.log to our results div
+      const originalConsoleLog = console.log;
+      console.log = function(...args) {
+        originalConsoleLog.apply(console, args);
+        resultsElement.textContent += args.join(' ') + '\n';
+      };
+      
+      try {
+        await testGuardrails();
+      } catch (error) {
+        console.error('Test error:', error);
+        resultsElement.textContent += `\nERROR: ${error.message}\n`;
+      }
+      
+      // Restore console.log
+      console.log = originalConsoleLog;
+    });
+    
+    document.getElementById('run-angry-email-tests').addEventListener('click', async () => {
+      const resultsElement = document.getElementById('results');
+      resultsElement.textContent = 'Running angry email tests...\n';
+      
+      // Redirect console.log to our results div
+      const originalConsoleLog = console.log;
+      console.log = function(...args) {
+        originalConsoleLog.apply(console, args);
+        resultsElement.textContent += args.join(' ') + '\n';
+      };
+      
+      try {
+        await testAngryEmailScenarios();
+      } catch (error) {
+        console.error('Test error:', error);
+        resultsElement.textContent += `\nERROR: ${error.message}\n`;
+      }
+      
+      // Restore console.log
+      console.log = originalConsoleLog;
+    });
+    
+    document.getElementById('run-api-tests').addEventListener('click', async () => {
+      const resultsElement = document.getElementById('results');
+      resultsElement.textContent = 'Running API integration tests...\n';
+      
+      // Redirect console.log to our results div
+      const originalConsoleLog = console.log;
+      console.log = function(...args) {
+        originalConsoleLog.apply(console, args);
+        resultsElement.textContent += args.join(' ') + '\n';
+      };
+      
+      try {
+        await testApiGuardrails();
+      } catch (error) {
+        console.error('Test error:', error);
+        resultsElement.textContent += `\nERROR: ${error.message}\n`;
+      }
+      
+      // Restore console.log
+      console.log = originalConsoleLog;
+    });
+    
+    document.getElementById('test-single').addEventListener('click', async () => {
+      const promptElement = document.getElementById('test-prompt');
+      const resultsElement = document.getElementById('results');
+      const prompt = promptElement.value.trim();
+      
+      if (!prompt) {
+        resultsElement.textContent = 'Please enter a prompt to test.';
+        return;
+      }
+      
+      resultsElement.textContent = 'Testing prompt...\n';
+      
+      try {
+        const result = await testSinglePrompt(prompt);
+        resultsElement.textContent = result;
+      } catch (error) {
+        console.error('Test error:', error);
+        resultsElement.textContent += `\nERROR: ${error.message}\n`;
+      }
+    });
+  </script>
+</body>
+</html>
