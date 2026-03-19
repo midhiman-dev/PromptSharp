@@ -255,6 +255,21 @@ export async function saveApiKey(key) {
 }
 
 /**
+ * Clear the stored API key from all frontend storage locations
+ * @returns {Promise<boolean>} Success status
+ */
+export async function clearApiKey() {
+  try {
+    await db.settings.delete(API_KEY_SETTING);
+    localStorage.removeItem('openrouter_api_key');
+    return true;
+  } catch (error) {
+    console.error('Error clearing API key:', error);
+    return false;
+  }
+}
+
+/**
  * Get storage statistics
  * @returns {Promise<Object>} Storage statistics
  */
@@ -287,6 +302,7 @@ export async function clearAllData() {
   try {
     await db.prompts.clear();
     await db.settings.clear();
+    localStorage.removeItem('openrouter_api_key');
     return true;
   } catch (error) {
     console.error('Error clearing data:', error);
@@ -371,6 +387,7 @@ export default {
   getSetting,
   getApiKey,
   saveApiKey,
+  clearApiKey,
   getStorageStats,
   clearAllData,
   saveSelectedModel,

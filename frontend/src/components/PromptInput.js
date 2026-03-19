@@ -1,7 +1,7 @@
 // Prompt Input Component
 import { createElement } from '../utils/renderer.js';
 import { optimizePrompt, configureGuardrails } from '../services/api.js';
-import { savePrompt, getApiKey, saveApiKey } from '../services/storage.js';
+import { savePrompt, getApiKey, saveApiKey, clearApiKey, clearAllData } from '../services/storage.js';
 
 // Global state for the prompt application
 window.promptState = window.promptState || {
@@ -44,6 +44,14 @@ export function initPromptInput(container) {
           placeholder="Enter your OpenRouter API key"
         />
         <p class="text-xs text-black mt-1">Your API key is stored locally and never sent to our servers.</p>
+        <div class="mt-3 flex flex-wrap gap-2">
+          <button id="clear-api-key-button" type="button" class="bg-amber-600 text-white px-3 py-1 rounded hover:bg-amber-700">
+            Clear API Key
+          </button>
+          <button id="clear-all-button" type="button" class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700">
+            Clear All Data
+          </button>
+        </div>
       </div>
       <div id="guardrails-settings" class="mt-4 p-3 bg-gray-50 border border-gray-200 rounded">
         <div class="flex items-center justify-between">
@@ -87,6 +95,8 @@ export function initPromptInput(container) {
   const optimizeButton = document.getElementById('optimize-button');
   const errorMessage = document.getElementById('error-message');
   const apiKeyInput = document.getElementById('api-key');
+  const clearApiKeyButton = document.getElementById('clear-api-key-button');
+  const clearAllButton = document.getElementById('clear-all-button');
   
   // Guardrails settings elements
   const toggleGuardrailsBtn = document.getElementById('toggle-guardrails-settings');
@@ -163,6 +173,33 @@ export function initPromptInput(container) {
     localStorage.setItem('openrouter_api_key', apiKey);
     
     optimizeButton.disabled = promptInput.value.length === 0 || !apiKey;
+  });
+
+  clearApiKeyButton.addEventListener('click', async () => {
+    await clearApiKey();
+    apiKeyInput.value = '';
+    optimizeButton.disabled = promptInput.value.length === 0 || !apiKeyInput.value;
+    showError('Saved API key cleared.');
+    document.dispatchEvent(new CustomEvent('apikeycleared'));
+  });
+
+  clearAllButton.addEventListener('click', async () => {
+    if (!window.confirm('Clear API key, saved prompts, and all local data for this page?')) {
+      return;
+    }
+
+    await clearAllData();
+    apiKeyInput.value = '';
+    promptInput.value = '';
+    charCount.textContent = `0 / ${maxChars} characters`;
+    optimizeButton.disabled = true;
+    errorMessage.classList.add('hidden');
+
+    window.promptState.original = '';
+    window.promptState.optimized = '';
+    window.promptState.error = null;
+
+    document.dispatchEvent(new CustomEvent('appdatareset'));
   });
   
   // Handle optimize button click

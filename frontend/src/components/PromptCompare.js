@@ -139,6 +139,16 @@ export function initPromptCompare(container) {
     saveButton.disabled = false;
   });
 
+  document.addEventListener('appdatareset', () => {
+    compareContainer.classList.add('hidden');
+    originalPrompt.textContent = 'Your original prompt will appear here.';
+    optimizedPrompt.textContent = 'Your optimized prompt will appear here.';
+    guardrailsWarning.classList.add('hidden');
+    modelInfo.classList.add('hidden');
+    copyButton.disabled = true;
+    saveButton.disabled = true;
+  });
+
   function displayGuardrailsWarning(issues, notices = []) {
     guardrailsWarning.classList.remove('hidden');
 

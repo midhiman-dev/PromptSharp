@@ -60,6 +60,11 @@ export function initPromptHistory(container) {
   document.addEventListener('promptsaved', () => {
     renderPromptList();
   });
+
+  document.addEventListener('appdatareset', () => {
+    searchInput.value = '';
+    renderPromptList();
+  });
   
   // Render the list of saved prompts
   async function renderPromptList(searchQuery = '') {

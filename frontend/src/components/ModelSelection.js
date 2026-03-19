@@ -267,6 +267,16 @@ export async function initModelSelection(container) {
     loadModels(true);
   });
 
+  document.addEventListener('appdatareset', async () => {
+    selectedModelId = PRIMARY_MODEL;
+    await saveSelectedModel(PRIMARY_MODEL);
+    const selectedModel = allModels.find((model) => model.id === PRIMARY_MODEL) || allModels[0];
+    if (selectedModel) {
+      updateSelectedModel(selectedModel);
+    }
+    modelResults.classList.add('hidden');
+  });
+
   await loadModels();
 
   return component;

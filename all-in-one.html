@@ -53,6 +53,14 @@
             value=""
           />
           <p class="text-xs text-gray-500 mt-1">Your API key is stored locally and never sent to our servers.</p>
+          <div class="mt-3 flex flex-wrap gap-2">
+            <button id="clear-api-key-button" type="button" class="bg-amber-600 text-white px-3 py-1 rounded hover:bg-amber-700">
+              Clear API Key
+            </button>
+            <button id="clear-all-button" type="button" class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700">
+              Clear All Data
+            </button>
+          </div>
         </div>
         <div id="error-message" class="text-red-500 mt-2 hidden"></div>
       </div>
@@ -182,8 +190,20 @@
         localStorage.setItem(this.OPENROUTER_API_KEY_KEY, key);
       },
 
+      clearApiKey() {
+        localStorage.removeItem(this.API_KEY_KEY);
+        localStorage.removeItem(this.OPENROUTER_API_KEY_KEY);
+      },
+
       getSelectedModel() {
         return localStorage.getItem(this.SELECTED_MODEL_KEY) || '';
+      },
+
+      clearAllData() {
+        localStorage.removeItem(this.STORAGE_KEY);
+        localStorage.removeItem(this.API_KEY_KEY);
+        localStorage.removeItem(this.OPENROUTER_API_KEY_KEY);
+        localStorage.removeItem(this.SELECTED_MODEL_KEY);
       }
     };
     
@@ -354,6 +374,8 @@
       const searchInput = document.getElementById('search-input');
       const exportButton = document.getElementById('export-button');
       const promptList = document.getElementById('prompt-list');
+      const clearApiKeyButton = document.getElementById('clear-api-key-button');
+      const clearAllButton = document.getElementById('clear-all-button');
       
       // Set saved API key if it exists
       const savedApiKey = StorageService.getApiKey();
@@ -374,6 +396,33 @@
       apiKeyInput.addEventListener('input', () => {
         StorageService.saveApiKey(apiKeyInput.value);
         optimizeButton.disabled = promptInput.value.length === 0 || !apiKeyInput.value;
+      });
+
+      clearApiKeyButton.addEventListener('click', () => {
+        StorageService.clearApiKey();
+        apiKeyInput.value = '';
+        optimizeButton.disabled = promptInput.value.length === 0 || !apiKeyInput.value;
+        showError('Saved API key cleared.');
+      });
+
+      clearAllButton.addEventListener('click', () => {
+        if (!confirm('Clear API key, saved prompts, and all local data for this page?')) {
+          return;
+        }
+
+        StorageService.clearAllData();
+        apiKeyInput.value = '';
+        promptInput.value = '';
+        charCount.textContent = '0 / 2000 characters';
+        searchInput.value = '';
+        originalPrompt.textContent = 'Your original prompt will appear here.';
+        optimizedPrompt.textContent = 'Your optimized prompt will appear here.';
+        promptCompare.classList.add('hidden');
+        copyButton.disabled = true;
+        saveButton.disabled = true;
+        optimizeButton.disabled = true;
+        errorMessage.classList.add('hidden');
+        renderPromptList();
       });
       
       // Handle optimize button click
