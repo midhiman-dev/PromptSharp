@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -6,632 +5,151 @@
   <title>PromptSharp - All-in-One</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    /* Custom styles */
-    :focus { outline: none; }
-    button, .hover-transition { transition: all 0.2s ease; }
-    
-    /* Custom scrollbar */
-    ::-webkit-scrollbar { width: 8px; }
-    ::-webkit-scrollbar-track { background: #f1f1f1; }
-    ::-webkit-scrollbar-thumb { background: #888; border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: #555; }
+    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Manrope:wght@500;600;700;800&display=swap');
+    body { font-family: 'Manrope', 'Segoe UI', sans-serif; }
+    .mono { font-family: 'IBM Plex Mono', 'Consolas', monospace; }
+    ::-webkit-scrollbar { width: 10px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.42); border-radius: 999px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(100, 116, 139, 0.68); }
   </style>
 </head>
-<body class="bg-gray-100 min-h-screen">
-  <div class="container mx-auto px-4 py-8 max-w-6xl">
-    <header class="text-center mb-8">
-      <h1 class="text-4xl font-bold text-blue-700">PromptSharp</h1>
-      <p class="text-gray-600 mt-2">Transform your prompts into highly effective instructions in seconds</p>
-      <p class="text-sm text-blue-600 mt-1">Primary: Mistral Small 3.2 24B | Fallback: Gemini 2.0 Flash Experimental</p>
+<body class="min-h-screen bg-slate-100 text-slate-950" style="background: radial-gradient(circle at top left, rgba(37, 99, 235, 0.12), transparent 30%), radial-gradient(circle at top right, rgba(13, 148, 136, 0.10), transparent 28%), linear-gradient(180deg, #f8fbff 0%, #eef4fb 100%);">
+  <div class="mx-auto max-w-6xl px-4 py-8">
+    <header class="rounded-[32px] border border-slate-200/80 bg-white/90 p-8 shadow-[0_24px_80px_rgba(15,23,42,0.12)] backdrop-blur">
+      <div class="grid gap-6 lg:grid-cols-[1.7fr_.9fr]">
+        <div>
+          <p class="text-xs font-extrabold uppercase tracking-[0.14em] text-blue-700">Prompt optimization workspace</p>
+          <h1 class="mt-3 text-[clamp(2.75rem,6vw,4.8rem)] font-extrabold leading-[0.96] tracking-[-0.06em]">PromptSharp</h1>
+          <p class="mt-3 max-w-3xl text-lg leading-8 text-slate-600">Turn rough prompts into production-ready instructions with a cleaner workflow, guided model control, and reusable prompt history.</p>
+        </div>
+        <div class="grid gap-3">
+          <div class="rounded-[20px] border border-slate-200 bg-slate-50 p-5">
+            <div class="text-[11px] font-bold uppercase tracking-[0.22em] text-slate-400">Workflow</div>
+            <div class="mt-2 text-base font-semibold text-slate-900">Draft, optimize, compare</div>
+          </div>
+          <div class="rounded-[20px] border border-slate-200 bg-slate-50 p-5">
+            <div class="text-[11px] font-bold uppercase tracking-[0.22em] text-slate-400">Data handling</div>
+            <div class="mt-2 text-base font-semibold text-slate-900">Stored locally in your browser</div>
+          </div>
+        </div>
+      </div>
     </header>
-    
-    <main>
-      <!-- Prompt Input -->
-      <div id="prompt-input" class="w-full max-w-xl mx-auto mb-6">
-        <h2 class="text-xl font-semibold mb-2 text-gray-800">Enter Your Prompt</h2>
-        <textarea 
-          id="prompt-textarea" 
-          class="w-full h-32 p-3 border rounded shadow focus:ring-2 focus:ring-blue-400"
-          placeholder="Type or paste your prompt here (up to 2000 characters)..."
-          maxlength="2000"
-        ></textarea>
-        <div class="flex justify-between items-center mt-2 text-sm text-gray-600">
-          <span id="char-count">0 / 2000 characters</span>
+
+    <main class="mt-6 grid gap-6">
+      <section class="grid gap-6 lg:grid-cols-[1.35fr_.82fr] lg:items-stretch">
+        <section class="rounded-[28px] border border-slate-200/80 bg-white/90 p-7 shadow-[0_24px_80px_rgba(15,23,42,0.12)] backdrop-blur">
           <div>
-            <button id="optimize-button" class="bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700" disabled>
-              Optimize
-            </button>
+            <span class="text-xs font-extrabold uppercase tracking-[0.14em] text-blue-700">Compose</span>
+            <h2 class="mt-2 text-[1.55rem] font-bold tracking-[-0.04em] text-slate-950">Input prompt</h2>
+            <p class="mt-2 text-[1.05rem] leading-8 text-slate-600">Paste a rough prompt and refine it into a cleaner, more actionable instruction set.</p>
           </div>
-        </div>
-        <div id="api-key-section" class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
-          <label for="api-key" class="block text-sm font-medium mb-1">OpenRouter API Key</label>
-          <input 
-            type="password" 
-            id="api-key" 
-            class="w-full p-2 border rounded" 
-            placeholder="Enter your OpenRouter API key"
-            value=""
-          />
-          <p class="text-xs text-gray-500 mt-1">Your API key is stored locally and never sent to our servers.</p>
-          <div class="mt-3 flex flex-wrap gap-2">
-            <button id="clear-api-key-button" type="button" class="bg-amber-600 text-white px-3 py-1 rounded hover:bg-amber-700">
-              Clear API Key
-            </button>
-            <button id="clear-all-button" type="button" class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700">
-              Clear All Data
-            </button>
+          <textarea id="prompt-textarea" class="mt-7 min-h-[220px] w-full rounded-[18px] border border-slate-300/70 bg-white/90 px-5 py-4 text-slate-950 shadow-inner outline-none focus:ring-4 focus:ring-blue-100" placeholder="Type or paste your prompt here..." maxlength="2000"></textarea>
+          <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <span id="char-count" class="text-[0.92rem] text-slate-500">0 / 2000 characters</span>
+            <button id="optimize-button" class="inline-flex min-h-[46px] items-center justify-center rounded-full bg-gradient-to-r from-blue-600 to-blue-700 px-5 font-bold text-white shadow-[0_12px_24px_rgba(21,94,239,0.22)] disabled:cursor-not-allowed disabled:opacity-60" disabled>Optimize prompt</button>
           </div>
-        </div>
-        <div id="error-message" class="text-red-500 mt-2 hidden"></div>
-      </div>
+          <div class="mt-6 rounded-[20px] border border-slate-200 bg-gradient-to-b from-white to-slate-50 p-5">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <h3 class="text-[1.05rem] font-extrabold text-slate-950">Access key</h3>
+                <p class="text-[0.92rem] text-slate-500">Your OpenRouter API key stays in local browser storage.</p>
+              </div>
+              <span class="inline-flex min-h-[28px] items-center rounded-full bg-emerald-100 px-3 text-xs font-extrabold text-emerald-700">Local only</span>
+            </div>
+            <label for="api-key" class="mt-4 block text-sm font-bold text-slate-600">OpenRouter API Key</label>
+            <input type="password" id="api-key" class="mt-2 min-h-[52px] w-full rounded-[18px] border border-slate-300/70 bg-white px-4 text-slate-950 outline-none focus:ring-4 focus:ring-blue-100" placeholder="Enter your OpenRouter API key">
+            <div class="mt-4 flex flex-col gap-3 sm:flex-row">
+              <button id="clear-api-key-button" type="button" class="inline-flex min-h-[46px] items-center justify-center rounded-full border border-slate-300/70 bg-white px-5 font-bold text-slate-900">Clear key</button>
+              <button id="clear-all-button" type="button" class="inline-flex min-h-[46px] items-center justify-center rounded-full border border-red-200 bg-red-100 px-5 font-bold text-red-700">Clear local data</button>
+            </div>
+          </div>
+          <div id="error-message" class="mt-4 hidden rounded-2xl border border-red-200 bg-red-100 px-4 py-3 text-sm font-bold text-red-700"></div>
+        </section>
 
-      <!-- Prompt Comparison -->
-      <div id="prompt-compare" class="w-full max-w-xl mx-auto mb-6 hidden">
-        <h2 class="text-xl font-semibold mb-3 text-gray-800">Comparison</h2>
-        <div class="flex flex-col md:flex-row gap-4">
-          <div class="flex-1 bg-white p-3 rounded shadow">
-            <h3 class="font-semibold mb-2 text-gray-700">Original Prompt</h3>
-            <pre id="original-prompt" class="whitespace-pre-wrap text-gray-800 min-h-[100px] max-h-[300px] overflow-y-auto">Your original prompt will appear here.</pre>
+        <section id="model-panel" class="rounded-[28px] border border-slate-200/80 bg-white/90 p-7 shadow-[0_14px_40px_rgba(15,23,42,0.08)] backdrop-blur">
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <span class="text-xs font-extrabold uppercase tracking-[0.14em] text-blue-700">Routing</span>
+              <h2 class="mt-2 text-[1.55rem] font-bold tracking-[-0.04em] text-slate-950">Model selection</h2>
+              <p class="mt-2 text-[1.05rem] leading-8 text-slate-600">Choose the model used for prompt refinement.</p>
+            </div>
+            <button id="refresh-models" class="text-base font-bold text-blue-600">Refresh</button>
           </div>
-          <div class="flex-1 bg-blue-50 p-3 rounded shadow">
-            <h3 class="font-semibold mb-2 text-blue-700">Optimized Prompt</h3>
-            <pre id="optimized-prompt" class="whitespace-pre-wrap text-gray-900 min-h-[100px] max-h-[300px] overflow-y-auto">Your optimized prompt will appear here.</pre>
-            <div class="mt-3 flex gap-2">
-              <button id="copy-button" class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700" disabled>Copy</button>
-              <button id="save-button" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700" disabled>Save</button>
+          <div class="relative mt-7">
+            <input id="model-search" type="text" autocomplete="off" placeholder="Search models by name or provider" class="min-h-[52px] w-full rounded-[18px] border border-slate-300/70 bg-white px-4 text-slate-950 outline-none focus:ring-4 focus:ring-blue-100">
+            <div id="model-results" class="absolute left-0 right-0 top-[calc(100%+10px)] z-20 hidden max-h-80 overflow-y-auto rounded-[18px] border border-slate-200 bg-white shadow-[0_24px_80px_rgba(15,23,42,0.12)]"></div>
+            <p class="mt-2 text-[0.92rem] text-slate-500">Type to filter models. Free models are ranked before paid options.</p>
+          </div>
+          <div id="selected-model-summary" class="mt-4 flex flex-wrap items-center gap-3"></div>
+          <div id="model-info" class="mt-4 hidden rounded-[18px] bg-slate-50 p-4 text-slate-600">
+            <div id="model-description"></div>
+            <div class="mt-2 flex flex-wrap gap-4 text-[0.92rem] text-slate-500">
+              <span><strong>Context:</strong> <span id="model-context"></span> tokens</span>
+              <span><strong>Updated:</strong> <span id="model-updated"></span></span>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <section id="prompt-compare" class="hidden rounded-[28px] border border-slate-200/80 bg-white/90 p-7 shadow-[0_14px_40px_rgba(15,23,42,0.08)] backdrop-blur">
+        <div>
+          <span class="text-xs font-extrabold uppercase tracking-[0.14em] text-blue-700">Output</span>
+          <h2 class="mt-2 text-[1.55rem] font-bold tracking-[-0.04em] text-slate-950">Before and after</h2>
+          <p class="mt-2 text-[1.05rem] leading-8 text-slate-600">Review the optimized version before copying or saving it.</p>
+        </div>
+        <div class="mt-6 grid gap-5 lg:grid-cols-2">
+          <div class="rounded-[20px] border border-slate-200 bg-slate-50 p-5">
+            <h3 class="font-extrabold text-slate-950">Original prompt</h3>
+            <pre id="original-prompt" class="mono mt-4 max-h-[360px] min-h-[180px] overflow-y-auto whitespace-pre-wrap text-[0.94rem] leading-[1.68] text-slate-900">Your original prompt will appear here.</pre>
+          </div>
+          <div class="rounded-[20px] border border-slate-200 bg-gradient-to-b from-blue-50 to-white p-5">
+            <h3 class="font-extrabold text-slate-950">Optimized prompt</h3>
+            <pre id="optimized-prompt" class="mono mt-4 max-h-[360px] min-h-[180px] overflow-y-auto whitespace-pre-wrap text-[0.94rem] leading-[1.68] text-slate-900">Your optimized prompt will appear here.</pre>
+            <div id="result-model-info" class="mt-4 hidden items-center gap-3">
+              <span id="result-model-name" class="inline-flex min-h-[28px] items-center rounded-full bg-emerald-100 px-3 text-xs font-extrabold text-emerald-700">Model</span>
+              <span id="result-model-provider" class="text-[0.92rem] text-slate-500"></span>
+            </div>
+            <div class="mt-4 flex flex-col gap-3 sm:flex-row">
+              <button id="copy-button" class="inline-flex min-h-[46px] items-center justify-center rounded-full bg-gradient-to-r from-blue-600 to-blue-700 px-5 font-bold text-white shadow-[0_12px_24px_rgba(21,94,239,0.22)] disabled:cursor-not-allowed disabled:opacity-60" disabled>Copy result</button>
+              <button id="save-button" class="inline-flex min-h-[46px] items-center justify-center rounded-full border border-slate-300/70 bg-white px-5 font-bold text-slate-900 disabled:cursor-not-allowed disabled:opacity-60" disabled>Save prompt</button>
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      <!-- Prompt History -->
-      <div id="prompt-history" class="w-full max-w-xl mx-auto mb-6">
-        <h2 class="text-xl font-semibold mb-3 text-gray-800">Saved Prompts</h2>
-        <div class="mb-3 flex gap-2">
-          <input id="search-input" class="flex-1 p-2 border rounded" placeholder="Search saved prompts..." />
-          <button id="export-button" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">Export (JSON)</button>
+      <section class="rounded-[28px] border border-slate-200/80 bg-white/90 p-7 shadow-[0_14px_40px_rgba(15,23,42,0.08)] backdrop-blur">
+        <div>
+          <span class="text-xs font-extrabold uppercase tracking-[0.14em] text-blue-700">Library</span>
+          <h2 class="mt-2 text-[1.55rem] font-bold tracking-[-0.04em] text-slate-950">Saved prompts</h2>
+          <p class="mt-2 text-[1.05rem] leading-8 text-slate-600">Search, reuse, or export prompts you want to keep.</p>
         </div>
-        <div id="prompt-list" class="bg-white rounded shadow divide-y max-h-[300px] overflow-y-auto">
-          <div class="p-3 text-gray-500">No saved prompts yet.</div>
+        <div class="mt-6 flex flex-col gap-3 sm:flex-row">
+          <input id="search-input" class="min-h-[52px] flex-1 rounded-[18px] border border-slate-300/70 bg-white px-4 text-slate-950 outline-none focus:ring-4 focus:ring-blue-100" placeholder="Search saved prompts...">
+          <button id="export-button" class="inline-flex min-h-[46px] items-center justify-center rounded-full border border-slate-300/70 bg-white px-5 font-bold text-slate-900">Export JSON</button>
         </div>
-      </div>
+        <div id="prompt-list" class="mt-6 grid gap-3">
+          <div class="rounded-[18px] bg-slate-50 px-5 py-4 text-center text-slate-500">No saved prompts yet.</div>
+        </div>
+      </section>
     </main>
-    
-    <footer class="mt-12 text-center text-gray-500 text-sm">
-      <p>© 2025 PromptSharp. All rights reserved.</p>
-    </footer>
+    <footer class="mt-12 text-center text-sm text-slate-500"><p>&copy; 2025 PromptSharp. All rights reserved.</p></footer>
   </div>
-  
   <script>
-    // Storage service
-    const StorageService = {
-      STORAGE_KEY: 'promptsharp_saved_prompts',
-      API_KEY_KEY: 'promptsharp_api_key',
-      OPENROUTER_API_KEY_KEY: 'openrouter_api_key',
-      SELECTED_MODEL_KEY: 'promptsharp_selected_model',
-      MAX_SAVED_PROMPTS: 100,
-      
-      getSavedPrompts() {
-        try {
-          const saved = localStorage.getItem(this.STORAGE_KEY);
-          return saved ? JSON.parse(saved) : [];
-        } catch (error) {
-          console.error('Error getting saved prompts:', error);
-          return [];
-        }
-      },
-      
-      savePrompt(promptData) {
-        try {
-          const prompts = this.getSavedPrompts();
-          
-          // Check if we've reached the maximum number of saved prompts
-          if (prompts.length >= this.MAX_SAVED_PROMPTS) {
-            // Remove the oldest prompt
-            prompts.pop();
-          }
-          
-          // Add new prompt at the beginning with metadata
-          const newPrompt = {
-            id: Date.now().toString(),
-            timestamp: new Date().toISOString(),
-            original: promptData.original,
-            optimized: promptData.optimized,
-            category: promptData.category || 'General',
-          };
-          
-          prompts.unshift(newPrompt);
-          localStorage.setItem(this.STORAGE_KEY, JSON.stringify(prompts));
-          
-          return true;
-        } catch (error) {
-          console.error('Error saving prompt:', error);
-          return false;
-        }
-      },
-      
-      deletePrompt(promptId) {
-        try {
-          const prompts = this.getSavedPrompts();
-          const filteredPrompts = prompts.filter(p => p.id !== promptId);
-          localStorage.setItem(this.STORAGE_KEY, JSON.stringify(filteredPrompts));
-          return true;
-        } catch (error) {
-          console.error('Error deleting prompt:', error);
-          return false;
-        }
-      },
-      
-      searchPrompts(query) {
-        if (!query) return this.getSavedPrompts();
-        
-        const prompts = this.getSavedPrompts();
-        const lowerQuery = query.toLowerCase();
-        
-        return prompts.filter(p => 
-          p.original.toLowerCase().includes(lowerQuery) || 
-          p.optimized.toLowerCase().includes(lowerQuery)
-        );
-      },
-      
-      exportPrompts() {
-        const prompts = this.getSavedPrompts();
-        return JSON.stringify(prompts, null, 2);
-      },
-      
-      getApiKey() {
-        return localStorage.getItem(this.API_KEY_KEY) ||
-          localStorage.getItem(this.OPENROUTER_API_KEY_KEY) ||
-          '';
-      },
-      
-      saveApiKey(key) {
-        localStorage.setItem(this.API_KEY_KEY, key);
-        localStorage.setItem(this.OPENROUTER_API_KEY_KEY, key);
-      },
-
-      clearApiKey() {
-        localStorage.removeItem(this.API_KEY_KEY);
-        localStorage.removeItem(this.OPENROUTER_API_KEY_KEY);
-      },
-
-      getSelectedModel() {
-        return localStorage.getItem(this.SELECTED_MODEL_KEY) || '';
-      },
-
-      clearAllData() {
-        localStorage.removeItem(this.STORAGE_KEY);
-        localStorage.removeItem(this.API_KEY_KEY);
-        localStorage.removeItem(this.OPENROUTER_API_KEY_KEY);
-        localStorage.removeItem(this.SELECTED_MODEL_KEY);
-      }
-    };
-    
-    // API service
-    const ApiService = {
-      OPENROUTER_API_URL: 'https://openrouter.ai/api/v1/chat/completions',
-      OPENROUTER_MODELS_URL: 'https://openrouter.ai/api/v1/models',
-      PRIMARY_MODEL: 'mistralai/mistral-small-3.2-24b-instruct:free',
-      FALLBACK_MODELS: [
-        'google/gemini-2.5-flash-lite',
-        'google/gemini-2.5-flash',
-        'google/gemini-2.0-flash'
-      ],
-
-      async parseError(response) {
-        try {
-          const error = await response.json();
-          return error.error?.message || error.message || `API Error: ${response.status}`;
-        } catch (parseError) {
-          return `API Error: ${response.status}`;
-        }
-      },
-
-      extractContent(data) {
-        const content = data?.choices?.[0]?.message?.content;
-
-        if (typeof content === 'string') {
-          return content.trim();
-        }
-
-        if (Array.isArray(content)) {
-          return content
-            .map((part) => {
-              if (typeof part === 'string') return part;
-              if (part?.type === 'text') return part.text || '';
-              return '';
-            })
-            .join('')
-            .trim();
-        }
-
-        return '';
-      },
-      
-      async optimizePrompt(prompt, apiKey) {
-        if (!apiKey) {
-          throw new Error('API key is required');
-        }
-        
-        const systemPrompt = `You are an expert prompt engineer. Your task is to transform the user's prompt into a well-structured, 
-        clear, and effective prompt that will produce optimal results from AI systems. 
-        Analyze the provided prompt, identify any issues or ambiguities, and restructure it to be more specific, 
-        concise, and aligned with best practices in prompt engineering. 
-        Focus on clarity, specificity, and appropriate context. 
-        Return ONLY the optimized prompt without any explanations or additional text.`;
-        
-        const selectedModel = this.getSelectedModel();
-        const candidateModels = selectedModel
-          ? [selectedModel, this.PRIMARY_MODEL, ...this.FALLBACK_MODELS].filter((model, index, models) => model && models.indexOf(model) === index)
-          : [this.PRIMARY_MODEL, ...this.FALLBACK_MODELS];
-
-        let lastError;
-
-        for (const model of candidateModels) {
-          try {
-            const response = await fetch(this.OPENROUTER_API_URL, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`,
-                'HTTP-Referer': window.location.href,
-                'X-Title': 'PromptSharp'
-              },
-              body: JSON.stringify({
-                model,
-                messages: [
-                  { role: 'system', content: systemPrompt },
-                  { role: 'user', content: prompt }
-                ],
-                max_tokens: 1000,
-                temperature: 0.7,
-                top_p: 0.9,
-                frequency_penalty: 0.1
-              })
-            });
-            
-            if (!response.ok) {
-              throw new Error(await this.parseError(response));
-            }
-            
-            const data = await response.json();
-            const optimized = this.extractContent(data);
-
-            if (!optimized) {
-              throw new Error('OpenRouter returned an empty response');
-            }
-
-            return {
-              original: prompt,
-              optimized,
-              model,
-              fallbackUsed: Boolean(selectedModel && model !== selectedModel)
-            };
-          } catch (error) {
-            lastError = error;
-            console.error(`Model ${model} failed:`, error);
-          }
-        }
-
-        throw new Error(`Failed to optimize prompt with ${selectedModel || 'the configured models'}: ${lastError?.message || 'All configured models failed'}`);
-      },
-
-      getSelectedModel() {
-        return StorageService.getSelectedModel();
-      },
-
-      async getAvailableModels(apiKey) {
-        if (!apiKey) {
-          return [];
-        }
-
-        try {
-          const response = await fetch(this.OPENROUTER_MODELS_URL, {
-            method: 'GET',
-            headers: {
-              'Authorization': `Bearer ${apiKey}`,
-              'HTTP-Referer': window.location.href,
-              'X-Title': 'PromptSharp'
-            }
-          });
-
-          if (!response.ok) {
-            throw new Error(await this.parseError(response));
-          }
-
-          const data = await response.json();
-          return Array.isArray(data?.data) ? data.data : [];
-        } catch (error) {
-          console.error('Error fetching models:', error);
-          return [];
-        }
-      }
-    };
-
-    // Helper functions
-    function escapeHTML(str) {
-      return str
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-    }
-    
-    // Initialize the application
-    document.addEventListener('DOMContentLoaded', () => {
-      // Get DOM elements
-      const promptInput = document.getElementById('prompt-textarea');
-      const charCount = document.getElementById('char-count');
-      const optimizeButton = document.getElementById('optimize-button');
-      const apiKeyInput = document.getElementById('api-key');
-      const errorMessage = document.getElementById('error-message');
-      const promptCompare = document.getElementById('prompt-compare');
-      const originalPrompt = document.getElementById('original-prompt');
-      const optimizedPrompt = document.getElementById('optimized-prompt');
-      const copyButton = document.getElementById('copy-button');
-      const saveButton = document.getElementById('save-button');
-      const searchInput = document.getElementById('search-input');
-      const exportButton = document.getElementById('export-button');
-      const promptList = document.getElementById('prompt-list');
-      const clearApiKeyButton = document.getElementById('clear-api-key-button');
-      const clearAllButton = document.getElementById('clear-all-button');
-      
-      // Set saved API key if it exists
-      const savedApiKey = StorageService.getApiKey();
-      if (savedApiKey) {
-        apiKeyInput.value = savedApiKey;
-      }
-      
-      // Update char count on input
-      promptInput.addEventListener('input', () => {
-        const currentLength = promptInput.value.length;
-        charCount.textContent = `${currentLength} / 2000 characters`;
-        
-        // Enable/disable optimize button
-        optimizeButton.disabled = currentLength === 0 || !apiKeyInput.value;
-      });
-      
-      // Update API key in storage when changed
-      apiKeyInput.addEventListener('input', () => {
-        StorageService.saveApiKey(apiKeyInput.value);
-        optimizeButton.disabled = promptInput.value.length === 0 || !apiKeyInput.value;
-      });
-
-      clearApiKeyButton.addEventListener('click', () => {
-        StorageService.clearApiKey();
-        apiKeyInput.value = '';
-        optimizeButton.disabled = promptInput.value.length === 0 || !apiKeyInput.value;
-        showError('Saved API key cleared.');
-      });
-
-      clearAllButton.addEventListener('click', () => {
-        if (!confirm('Clear API key, saved prompts, and all local data for this page?')) {
-          return;
-        }
-
-        StorageService.clearAllData();
-        apiKeyInput.value = '';
-        promptInput.value = '';
-        charCount.textContent = '0 / 2000 characters';
-        searchInput.value = '';
-        originalPrompt.textContent = 'Your original prompt will appear here.';
-        optimizedPrompt.textContent = 'Your optimized prompt will appear here.';
-        promptCompare.classList.add('hidden');
-        copyButton.disabled = true;
-        saveButton.disabled = true;
-        optimizeButton.disabled = true;
-        errorMessage.classList.add('hidden');
-        renderPromptList();
-      });
-      
-      // Handle optimize button click
-      optimizeButton.addEventListener('click', async () => {
-        const prompt = promptInput.value.trim();
-        const apiKey = apiKeyInput.value.trim();
-        
-        if (!prompt) {
-          showError('Please enter a prompt to optimize');
-          return;
-        }
-        
-        if (!apiKey) {
-          showError('Please enter your OpenRouter API key');
-          return;
-        }
-        
-        try {
-          // Show loading state
-          setLoading(true);
-          
-          // Call API to optimize prompt
-          const result = await ApiService.optimizePrompt(prompt, apiKey);
-          
-          // Show comparison section
-          promptCompare.classList.remove('hidden');
-          
-          // Update display
-          originalPrompt.textContent = result.original;
-          optimizedPrompt.textContent = result.optimized;
-          
-          // Enable buttons
-          copyButton.disabled = false;
-          saveButton.disabled = false;
-          
-          // Save to history automatically
-          StorageService.savePrompt(result);
-          
-          // Refresh history list
-          renderPromptList();
-          
-          // Hide error if any
-          errorMessage.classList.add('hidden');
-        } catch (error) {
-          showError(error.message || 'Failed to optimize prompt. Please try again.');
-        } finally {
-          setLoading(false);
-        }
-      });
-      
-      // Copy button click handler
-      copyButton.addEventListener('click', () => {
-        const text = optimizedPrompt.textContent;
-        
-        if (text && text !== 'Your optimized prompt will appear here.') {
-          navigator.clipboard.writeText(text)
-            .then(() => {
-              // Visual feedback
-              const originalText = copyButton.textContent;
-              copyButton.textContent = 'Copied!';
-              setTimeout(() => {
-                copyButton.textContent = originalText;
-              }, 2000);
-            })
-            .catch(err => {
-              console.error('Failed to copy text: ', err);
-            });
-        }
-      });
-      
-      // Save button click handler
-      saveButton.addEventListener('click', () => {
-        // Visual feedback only since we auto-save
-        const originalText = saveButton.textContent;
-        saveButton.textContent = 'Saved!';
-        setTimeout(() => {
-          saveButton.textContent = originalText;
-        }, 2000);
-      });
-      
-      // Listen for search input
-      searchInput.addEventListener('input', () => {
-        renderPromptList(searchInput.value);
-      });
-      
-      // Listen for export button click
-      exportButton.addEventListener('click', () => {
-        const json = StorageService.exportPrompts();
-        
-        // Create downloadable file
-        const blob = new Blob([json], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        
-        // Create and trigger download
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `promptsharp-export-${new Date().toISOString().split('T')[0]}.json`;
-        document.body.appendChild(a);
-        a.click();
-        
-        // Clean up
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      });
-      
-      // Initialize prompt list
-      renderPromptList();
-      
-      function showError(message) {
-        errorMessage.textContent = message;
-        errorMessage.classList.remove('hidden');
-        
-        // Hide error after 5 seconds
-        setTimeout(() => {
-          errorMessage.classList.add('hidden');
-        }, 5000);
-      }
-      
-      function setLoading(isLoading) {
-        if (isLoading) {
-          optimizeButton.disabled = true;
-          optimizeButton.textContent = 'Optimizing...';
-        } else {
-          optimizeButton.disabled = promptInput.value.length === 0 || !apiKeyInput.value;
-          optimizeButton.textContent = 'Optimize';
-        }
-      }
-      
-      // Render the list of saved prompts
-      function renderPromptList(searchQuery = '') {
-        const prompts = searchQuery ? StorageService.searchPrompts(searchQuery) : StorageService.getSavedPrompts();
-        
-        // Clear the list
-        promptList.innerHTML = '';
-        
-        if (prompts.length === 0) {
-          promptList.innerHTML = '<div class="p-3 text-gray-500">No saved prompts yet.</div>';
-          return;
-        }
-        
-        // Render each prompt
-        prompts.forEach(prompt => {
-          const item = document.createElement('div');
-          item.className = 'p-3 hover:bg-gray-50';
-          
-          // Format the date
-          const date = new Date(prompt.timestamp);
-          const formattedDate = date.toLocaleDateString();
-          
-          item.innerHTML = `
-            <div class="flex justify-between">
-              <div class="flex-1">
-                <div class="font-medium truncate">${escapeHTML(prompt.original.substring(0, 50))}${prompt.original.length > 50 ? '...' : ''}</div>
-                <div class="text-sm text-gray-500">${formattedDate}</div>
-              </div>
-              <div class="flex gap-2">
-                <button class="use-button text-blue-600 hover:underline" data-id="${prompt.id}">Use</button>
-                <button class="delete-button text-red-500 hover:underline" data-id="${prompt.id}">Delete</button>
-              </div>
-            </div>
-          `;
-          
-          // Add click event for the delete button
-          const deleteButton = item.querySelector('.delete-button');
-          deleteButton.addEventListener('click', (e) => {
-            const id = e.target.dataset.id;
-            
-            if (confirm('Are you sure you want to delete this prompt?')) {
-              StorageService.deletePrompt(id);
-              renderPromptList(searchQuery);
-            }
-          });
-          
-          // Add click event for the use button
-          const useButton = item.querySelector('.use-button');
-          useButton.addEventListener('click', (e) => {
-            const id = e.target.dataset.id;
-            const savedPrompt = StorageService.getSavedPrompts().find(p => p.id === id);
-            
-            if (savedPrompt) {
-              // Fill the input
-              promptInput.value = savedPrompt.original;
-              
-              // Update char count
-              const maxChars = 2000;
-              charCount.textContent = `${savedPrompt.original.length} / ${maxChars} characters`;
-              
-              // Enable optimize button if API key is present
-              optimizeButton.disabled = !apiKeyInput.value;
-              
-              // Show comparison section
-              promptCompare.classList.remove('hidden');
-              
-              // Update the display
-              originalPrompt.textContent = savedPrompt.original;
-              optimizedPrompt.textContent = savedPrompt.optimized;
-              
-              // Enable buttons
-              copyButton.disabled = false;
-              saveButton.disabled = false;
-              
-              // Scroll to input
-              promptInput.scrollIntoView({ behavior: 'smooth' });
-            }
-          });
-          
-          promptList.appendChild(item);
-        });
-      }
+    const StorageService={STORAGE_KEY:'promptsharp_saved_prompts',API_KEY_KEY:'promptsharp_api_key',OPENROUTER_API_KEY_KEY:'openrouter_api_key',SELECTED_MODEL_KEY:'promptsharp_selected_model',MAX_SAVED_PROMPTS:100,getSavedPrompts(){try{const saved=localStorage.getItem(this.STORAGE_KEY);return saved?JSON.parse(saved):[]}catch(error){console.error('Error getting saved prompts:',error);return[]}},savePrompt(promptData){try{const prompts=this.getSavedPrompts();if(prompts.length>=this.MAX_SAVED_PROMPTS)prompts.pop();prompts.unshift({id:Date.now().toString(),timestamp:new Date().toISOString(),original:promptData.original,optimized:promptData.optimized,category:promptData.category||'General'});localStorage.setItem(this.STORAGE_KEY,JSON.stringify(prompts));return true}catch(error){console.error('Error saving prompt:',error);return false}},deletePrompt(promptId){try{localStorage.setItem(this.STORAGE_KEY,JSON.stringify(this.getSavedPrompts().filter((p)=>p.id!==promptId)));return true}catch(error){console.error('Error deleting prompt:',error);return false}},searchPrompts(query){if(!query)return this.getSavedPrompts();const lowerQuery=query.toLowerCase();return this.getSavedPrompts().filter((p)=>p.original.toLowerCase().includes(lowerQuery)||p.optimized.toLowerCase().includes(lowerQuery))},exportPrompts(){return JSON.stringify(this.getSavedPrompts(),null,2)},getApiKey(){return localStorage.getItem(this.API_KEY_KEY)||localStorage.getItem(this.OPENROUTER_API_KEY_KEY)||''},saveApiKey(key){localStorage.setItem(this.API_KEY_KEY,key);localStorage.setItem(this.OPENROUTER_API_KEY_KEY,key)},clearApiKey(){localStorage.removeItem(this.API_KEY_KEY);localStorage.removeItem(this.OPENROUTER_API_KEY_KEY)},getSelectedModel(){return localStorage.getItem(this.SELECTED_MODEL_KEY)||''},saveSelectedModel(model){localStorage.setItem(this.SELECTED_MODEL_KEY,model)},clearAllData(){localStorage.removeItem(this.STORAGE_KEY);localStorage.removeItem(this.API_KEY_KEY);localStorage.removeItem(this.OPENROUTER_API_KEY_KEY);localStorage.removeItem(this.SELECTED_MODEL_KEY)}};
+    const ApiService={OPENROUTER_API_URL:'https://openrouter.ai/api/v1/chat/completions',OPENROUTER_MODELS_URL:'https://openrouter.ai/api/v1/models',PRIMARY_MODEL:'mistralai/mistral-small-3.2-24b-instruct:free',FALLBACK_MODELS:['google/gemini-2.5-flash-lite','google/gemini-2.5-flash','google/gemini-2.0-flash'],async parseError(response){try{const error=await response.json();return error.error?.message||error.message||`API Error: ${response.status}`}catch{return`API Error: ${response.status}`}},extractContent(data){const content=data?.choices?.[0]?.message?.content;if(typeof content==='string')return content.trim();if(Array.isArray(content))return content.map((part)=>typeof part==='string'?part:part?.type==='text'?part.text||'':'').join('').trim();return''},async optimizePrompt(prompt,apiKey){if(!apiKey)throw new Error('API key is required');const systemPrompt=`You are an expert prompt engineer. Your task is to transform the user's prompt into a well-structured, clear, and effective prompt that will produce optimal results from AI systems. Analyze the provided prompt, identify any issues or ambiguities, and restructure it to be more specific, concise, and aligned with best practices in prompt engineering. Focus on clarity, specificity, and appropriate context. Return ONLY the optimized prompt without any explanations or additional text.`;const selectedModel=this.getSelectedModel();const candidateModels=selectedModel?[selectedModel,this.PRIMARY_MODEL,...this.FALLBACK_MODELS].filter((m,i,arr)=>m&&arr.indexOf(m)===i):[this.PRIMARY_MODEL,...this.FALLBACK_MODELS];let lastError;for(const model of candidateModels){try{const response=await fetch(this.OPENROUTER_API_URL,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`,'HTTP-Referer':window.location.href,'X-Title':'PromptSharp'},body:JSON.stringify({model,messages:[{role:'system',content:systemPrompt},{role:'user',content:prompt}],max_tokens:1000,temperature:.7,top_p:.9,frequency_penalty:.1})});if(!response.ok)throw new Error(await this.parseError(response));const data=await response.json();const optimized=this.extractContent(data);if(!optimized)throw new Error('OpenRouter returned an empty response');return{original:prompt,optimized,model}}catch(error){lastError=error;console.error(`Model ${model} failed:`,error)}}throw new Error(`Failed to optimize prompt with ${selectedModel||'the configured models'}: ${lastError?.message||'All configured models failed'}`)},getSelectedModel(){return StorageService.getSelectedModel()},async getAvailableModels(apiKey){if(!apiKey)return[];try{const response=await fetch(this.OPENROUTER_MODELS_URL,{method:'GET',headers:{Authorization:`Bearer ${apiKey}`,'HTTP-Referer':window.location.href,'X-Title':'PromptSharp'}});if(!response.ok)throw new Error(await this.parseError(response));const data=await response.json();return Array.isArray(data?.data)?data.data:[]}catch(error){console.error('Error fetching models:',error);return[]}}};
+    const escapeHTML=(str)=>str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#039;');
+    document.addEventListener('DOMContentLoaded',()=>{const promptInput=document.getElementById('prompt-textarea');const charCount=document.getElementById('char-count');const optimizeButton=document.getElementById('optimize-button');const apiKeyInput=document.getElementById('api-key');const errorMessage=document.getElementById('error-message');const promptCompare=document.getElementById('prompt-compare');const originalPrompt=document.getElementById('original-prompt');const optimizedPrompt=document.getElementById('optimized-prompt');const copyButton=document.getElementById('copy-button');const saveButton=document.getElementById('save-button');const searchInput=document.getElementById('search-input');const exportButton=document.getElementById('export-button');const promptList=document.getElementById('prompt-list');const clearApiKeyButton=document.getElementById('clear-api-key-button');const clearAllButton=document.getElementById('clear-all-button');const modelSearch=document.getElementById('model-search');const modelResults=document.getElementById('model-results');const refreshButton=document.getElementById('refresh-models');const selectedModelSummary=document.getElementById('selected-model-summary');const modelInfo=document.getElementById('model-info');const modelDescription=document.getElementById('model-description');const modelContext=document.getElementById('model-context');const modelUpdated=document.getElementById('model-updated');const resultModelInfo=document.getElementById('result-model-info');const resultModelName=document.getElementById('result-model-name');const resultModelProvider=document.getElementById('result-model-provider');let allModels=[{id:ApiService.PRIMARY_MODEL,name:'Mistral Small 3.2 24B',description:'Balanced default model for prompt optimization.',context_length:'Unknown',updated:null,isFree:true},{id:ApiService.FALLBACK_MODELS[0],name:'Gemini 2.5 Flash Lite',description:'Fast backup model when routing needs an alternative.',context_length:'Unknown',updated:null,isFree:true}];let selectedModelId=StorageService.getSelectedModel()||ApiService.PRIMARY_MODEL;
+    const getProvider=(model)=>model.id.includes('/')?model.id.split('/')[0]:'other';const normalizeModel=(model)=>({...model,name:model.name||model.id,isFree:model.id==='openrouter/free'||model.id.endsWith(':free')||(model.name||'').toLowerCase().includes('(free)')});const formatModelLabel=(model)=>`${model.name||model.id} - ${getProvider(model)}`;
+    function showMessage(message,type='error'){errorMessage.textContent=message;errorMessage.className=`mt-4 rounded-2xl px-4 py-3 text-sm font-bold ${type==='success'?'border border-emerald-200 bg-emerald-100 text-emerald-700':'border border-red-200 bg-red-100 text-red-700'}`;errorMessage.classList.remove('hidden');setTimeout(()=>errorMessage.classList.add('hidden'),5000)}
+    function setLoading(isLoading){if(isLoading){optimizeButton.disabled=true;optimizeButton.textContent='Optimizing...'}else{optimizeButton.disabled=promptInput.value.length===0||!apiKeyInput.value;optimizeButton.textContent='Optimize prompt'}}
+    function updateSelectedModel(model){selectedModelId=model.id;modelSearch.value=formatModelLabel(model);selectedModelSummary.innerHTML=`<span class=\"inline-flex min-h-[28px] items-center rounded-full ${model.isFree?'bg-emerald-100 text-emerald-700':'bg-slate-200 text-slate-700'} px-3 text-xs font-extrabold\">${model.isFree?'Free tier':'Paid tier'}</span><span class=\"text-[0.92rem] text-slate-500\">Active model: ${model.name||model.id}</span>`;if(model.description||model.context_length||model.updated){modelDescription.textContent=model.description||'No description available';modelContext.textContent=model.context_length||'Unknown';modelUpdated.textContent=model.updated?new Date(model.updated*1000).toLocaleDateString():'Unknown';modelInfo.classList.remove('hidden')}else{modelInfo.classList.add('hidden')}}
+    function renderModelResults(query=''){const q=query.trim().toLowerCase();const filtered=[...allModels].filter((model)=>!q||`${model.name} ${model.id}`.toLowerCase().includes(q)).sort((a,b)=>{if(a.isFree!==b.isFree)return a.isFree?-1:1;return(a.name||a.id).localeCompare(b.name||b.id)});if(!filtered.length){modelResults.innerHTML='<div class=\"px-4 py-3 text-slate-500\">No models match your search.</div>';modelResults.classList.remove('hidden');return}modelResults.innerHTML=filtered.slice(0,50).map((model)=>`<button type=\"button\" data-model-id=\"${model.id}\" class=\"flex w-full items-start justify-between gap-4 border-b border-slate-100 px-4 py-3 text-left ${model.id===selectedModelId?'bg-blue-50':''}\"><span><span class=\"block text-sm font-semibold text-slate-950\">${model.name||model.id}</span><span class=\"block text-xs text-slate-500\">${model.id}</span></span><span class=\"inline-flex min-h-[28px] items-center rounded-full ${model.isFree?'bg-emerald-100 text-emerald-700':'bg-slate-200 text-slate-700'} px-3 text-xs font-extrabold\">${model.isFree?'Free':'Paid'}</span></button>`).join('');modelResults.classList.remove('hidden');modelResults.querySelectorAll('[data-model-id]').forEach((button)=>button.addEventListener('click',()=>{const model=allModels.find((item)=>item.id===button.dataset.modelId);if(!model)return;StorageService.saveSelectedModel(model.id);updateSelectedModel(model);modelResults.classList.add('hidden')}))}
+    async function loadModels(){try{modelSearch.value='Loading models...';const models=await ApiService.getAvailableModels(apiKeyInput.value.trim());if(models?.length){const unique=new Map();[...allModels,...models].forEach((model)=>unique.set(normalizeModel(model).id,normalizeModel(model)));allModels=Array.from(unique.values())}const selected=allModels.find((m)=>m.id===selectedModelId)||allModels[0];if(selected)updateSelectedModel(selected);modelResults.classList.add('hidden')}catch(error){console.error('Error loading models:',error)}}
+    function renderPromptList(searchQuery=''){const prompts=searchQuery?StorageService.searchPrompts(searchQuery):StorageService.getSavedPrompts();promptList.innerHTML='';if(!prompts.length){promptList.innerHTML='<div class=\"rounded-[18px] bg-slate-50 px-5 py-4 text-center text-slate-500\">No saved prompts yet.</div>';return}prompts.forEach((prompt)=>{const item=document.createElement('div');item.className='rounded-[18px] border border-slate-200 bg-slate-50 px-5 py-4';item.innerHTML=`<div class=\"flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between\"><div class=\"flex-1\"><div class=\"text-[0.98rem] font-extrabold leading-7 text-slate-950\">${escapeHTML(prompt.original.substring(0,72))}${prompt.original.length>72?'...':''}</div><div class=\"mt-3 flex flex-wrap items-center gap-3\"><span class=\"text-[0.92rem] text-slate-500\">${new Date(prompt.timestamp).toLocaleDateString()}</span><span class=\"inline-flex min-h-[28px] items-center rounded-full bg-slate-200 px-3 text-xs font-extrabold text-slate-600\">Saved</span></div></div><div class=\"flex items-center gap-4\"><button class=\"use-button font-bold text-blue-600\" data-id=\"${prompt.id}\">Use</button><button class=\"delete-button font-bold text-red-600\" data-id=\"${prompt.id}\">Delete</button></div></div>`;item.querySelector('.delete-button').addEventListener('click',(e)=>{if(confirm('Are you sure you want to delete this prompt?')){StorageService.deletePrompt(e.target.dataset.id);renderPromptList(searchQuery)}});item.querySelector('.use-button').addEventListener('click',(e)=>{const savedPrompt=StorageService.getSavedPrompts().find((p)=>p.id===e.target.dataset.id);if(!savedPrompt)return;promptInput.value=savedPrompt.original;charCount.textContent=`${savedPrompt.original.length} / 2000 characters`;optimizeButton.disabled=!apiKeyInput.value;promptCompare.classList.remove('hidden');originalPrompt.textContent=savedPrompt.original;optimizedPrompt.textContent=savedPrompt.optimized;resultModelInfo.classList.add('hidden');copyButton.disabled=false;saveButton.disabled=false;promptInput.scrollIntoView({behavior:'smooth'})});promptList.appendChild(item)})}
+    const savedApiKey=StorageService.getApiKey();if(savedApiKey)apiKeyInput.value=savedApiKey;promptInput.addEventListener('input',()=>{charCount.textContent=`${promptInput.value.length} / 2000 characters`;optimizeButton.disabled=promptInput.value.length===0||!apiKeyInput.value});apiKeyInput.addEventListener('input',()=>{StorageService.saveApiKey(apiKeyInput.value);optimizeButton.disabled=promptInput.value.length===0||!apiKeyInput.value});clearApiKeyButton.addEventListener('click',()=>{StorageService.clearApiKey();apiKeyInput.value='';optimizeButton.disabled=promptInput.value.length===0||!apiKeyInput.value;showMessage('Saved API key cleared.','success')});clearAllButton.addEventListener('click',()=>{if(!confirm('Clear API key, saved prompts, and all local data for this page?'))return;StorageService.clearAllData();apiKeyInput.value='';promptInput.value='';charCount.textContent='0 / 2000 characters';searchInput.value='';originalPrompt.textContent='Your original prompt will appear here.';optimizedPrompt.textContent='Your optimized prompt will appear here.';promptCompare.classList.add('hidden');resultModelInfo.classList.add('hidden');copyButton.disabled=true;saveButton.disabled=true;optimizeButton.disabled=true;errorMessage.classList.add('hidden');selectedModelId=ApiService.PRIMARY_MODEL;StorageService.saveSelectedModel(ApiService.PRIMARY_MODEL);loadModels();renderPromptList()});
+    optimizeButton.addEventListener('click',async()=>{const prompt=promptInput.value.trim();const apiKey=apiKeyInput.value.trim();if(!prompt){showMessage('Please enter a prompt to optimize.');return}if(!apiKey){showMessage('Please enter your OpenRouter API key.');return}try{setLoading(true);const result=await ApiService.optimizePrompt(prompt,apiKey);promptCompare.classList.remove('hidden');originalPrompt.textContent=result.original;optimizedPrompt.textContent=result.optimized;copyButton.disabled=false;saveButton.disabled=false;if(result.model){const parts=result.model.split('/');resultModelName.textContent=parts.length>1?parts[1].replace(':free',''):result.model.replace(':free','');resultModelProvider.textContent=parts.length>1?parts[0]:'';resultModelInfo.classList.remove('hidden')}StorageService.savePrompt(result);renderPromptList();errorMessage.classList.add('hidden')}catch(error){showMessage(error.message||'Failed to optimize prompt. Please try again.')}finally{setLoading(false)}});
+    copyButton.addEventListener('click',()=>{const text=optimizedPrompt.textContent;if(text&&text!=='Your optimized prompt will appear here.')navigator.clipboard.writeText(text).then(()=>{const label=copyButton.textContent;copyButton.textContent='Copied';setTimeout(()=>copyButton.textContent=label,2000)}).catch((err)=>console.error('Failed to copy text:',err))});saveButton.addEventListener('click',()=>{const label=saveButton.textContent;saveButton.textContent='Saved';setTimeout(()=>saveButton.textContent=label,2000)});searchInput.addEventListener('input',()=>renderPromptList(searchInput.value));exportButton.addEventListener('click',()=>{const blob=new Blob([StorageService.exportPrompts()],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`promptsharp-export-${new Date().toISOString().split('T')[0]}.json`;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url)});modelSearch.addEventListener('focus',()=>renderModelResults(''));modelSearch.addEventListener('input',()=>renderModelResults(modelSearch.value));modelSearch.addEventListener('keydown',(event)=>{if(event.key==='Escape'){modelResults.classList.add('hidden');const selected=allModels.find((m)=>m.id===selectedModelId);if(selected)modelSearch.value=formatModelLabel(selected)}});document.addEventListener('click',(event)=>{const panel=document.getElementById('model-panel');if(panel&&!panel.contains(event.target)){modelResults.classList.add('hidden');const selected=allModels.find((m)=>m.id===selectedModelId);if(selected)modelSearch.value=formatModelLabel(selected)}});refreshButton.addEventListener('click',loadModels);loadModels();renderPromptList();
     });
   </script>
 </body>

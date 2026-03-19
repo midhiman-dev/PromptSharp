@@ -8,36 +8,40 @@ export async function initModelSelection(container) {
   const FALLBACK_MODEL = 'google/gemini-2.5-flash-lite';
 
   const component = createElement(`
-    <div class="mb-4 p-3 bg-gray-50 border border-gray-200 rounded">
-      <div class="flex items-center justify-between">
-        <label for="model-search" class="block text-sm font-medium text-gray-700">AI Model Selection</label>
-        <button id="refresh-models" class="text-xs text-blue-600 hover:underline">Refresh</button>
+    <section class="panel">
+      <div class="section-heading compact">
+        <div>
+          <span class="section-kicker">Routing</span>
+          <h2 class="section-title">Model selection</h2>
+          <p class="section-description">Choose the model used for prompt refinement.</p>
+        </div>
+        <button id="refresh-models" class="text-button">Refresh</button>
       </div>
-      <div class="mt-2 relative">
+
+      <div class="model-search-wrap">
         <input
           id="model-search"
           type="text"
           autocomplete="off"
           placeholder="Search models by name or provider"
-          class="w-full p-2 border rounded text-black"
+          class="app-input"
         />
-        <div
-          id="model-results"
-          class="hidden absolute z-20 mt-2 w-full max-h-72 overflow-y-auto rounded border border-gray-200 bg-white shadow-lg"
-        ></div>
-        <p class="text-xs text-gray-500 mt-1">Type to filter models. Free models are ranked first, then paid models.</p>
+        <div id="model-results" class="hidden model-results"></div>
+        <p class="field-help">Type to filter models. Free models are ranked before paid options.</p>
       </div>
-      <div id="selected-model-summary" class="mt-2 text-sm text-gray-700"></div>
-      <div id="model-info" class="text-xs text-gray-700 mt-2 hidden">
-        <div class="bg-blue-50 p-2 rounded">
+
+      <div id="selected-model-summary" class="selection-summary"></div>
+
+      <div id="model-info" class="model-info-card hidden">
+        <div>
           <span id="model-description"></span>
-          <div class="mt-1">
-            <span class="font-medium">Context:</span> <span id="model-context"></span> tokens |
-            <span class="font-medium">Updated:</span> <span id="model-updated"></span>
+          <div class="model-info-meta">
+            <span><strong>Context:</strong> <span id="model-context"></span> tokens</span>
+            <span><strong>Updated:</strong> <span id="model-updated"></span></span>
           </div>
         </div>
       </div>
-    </div>
+    </section>
   `);
 
   container.appendChild(component);
@@ -55,7 +59,7 @@ export async function initModelSelection(container) {
     {
       id: PRIMARY_MODEL,
       name: 'Mistral Small 3.2 24B',
-      description: 'Default free model for prompt optimization.',
+      description: 'Balanced default model for prompt optimization.',
       context_length: 'Unknown',
       updated: null,
       isFree: true
@@ -63,7 +67,7 @@ export async function initModelSelection(container) {
     {
       id: FALLBACK_MODEL,
       name: 'Gemini 2.5 Flash Lite',
-      description: 'Fallback free model for prompt optimization.',
+      description: 'Fast backup model when routing needs an alternative.',
       context_length: 'Unknown',
       updated: null,
       isFree: true
@@ -86,9 +90,7 @@ export async function initModelSelection(container) {
   }
 
   function formatModelLabel(model) {
-    const provider = getProvider(model);
-    const tier = model.isFree ? 'Free' : 'Paid';
-    return `${provider}: ${model.name || model.id} (${tier})`;
+    return `${model.name || model.id} · ${getProvider(model)}`;
   }
 
   function sortModels(models, query = '') {
@@ -126,16 +128,20 @@ export async function initModelSelection(container) {
   function updateSelectedModel(model) {
     selectedModelId = model.id;
     modelSearch.value = formatModelLabel(model);
-    selectedModelSummary.textContent = `Selected: ${formatModelLabel(model)}`;
+    selectedModelSummary.innerHTML = `
+      <span class="mini-chip ${model.isFree ? 'mini-chip-accent' : 'mini-chip-warning'}">${model.isFree ? 'Free tier' : 'Paid tier'}</span>
+      <span class="selection-summary-text">Active model: ${model.name || model.id}</span>
+    `;
 
     if (model.description || model.context_length || model.updated) {
       modelDescription.textContent = model.description || 'No description available';
       modelContext.textContent = model.context_length || 'Unknown';
       modelUpdated.textContent = model.updated ? new Date(model.updated * 1000).toLocaleDateString() : 'Unknown';
       modelInfo.classList.remove('hidden');
-    } else {
-      modelInfo.classList.add('hidden');
+      return;
     }
+
+    modelInfo.classList.add('hidden');
   }
 
   function renderResults(query = '') {
@@ -152,37 +158,28 @@ export async function initModelSelection(container) {
     );
 
     if (filteredModels.length === 0) {
-      modelResults.innerHTML = `
-        <div class="px-3 py-2 text-sm text-gray-500">No models match your search.</div>
-      `;
+      modelResults.innerHTML = '<div class="model-empty">No models match your search.</div>';
       modelResults.classList.remove('hidden');
       return;
     }
 
     modelResults.innerHTML = filteredModels
       .slice(0, 50)
-      .map((model) => {
-        const isSelected = model.id === selectedModelId;
-        const tierClass = model.isFree
-          ? 'bg-emerald-100 text-emerald-800'
-          : 'bg-amber-100 text-amber-800';
-
-        return `
-          <button
-            type="button"
-            data-model-id="${model.id}"
-            class="flex w-full items-start justify-between gap-3 border-b border-gray-100 px-3 py-2 text-left hover:bg-gray-50 ${isSelected ? 'bg-blue-50' : ''}"
-          >
-            <span>
-              <span class="block text-sm font-medium text-gray-900">${model.name || model.id}</span>
-              <span class="block text-xs text-gray-500">${model.id}</span>
-            </span>
-            <span class="shrink-0 rounded-full px-2 py-1 text-xs font-medium ${tierClass}">
-              ${model.isFree ? 'Free' : 'Paid'}
-            </span>
-          </button>
-        `;
-      })
+      .map((model) => `
+        <button
+          type="button"
+          data-model-id="${model.id}"
+          class="model-result-item ${model.id === selectedModelId ? 'model-result-selected' : ''}"
+        >
+          <span>
+            <span class="block text-sm font-medium text-slate-950">${model.name || model.id}</span>
+            <span class="block text-xs text-slate-500">${model.id}</span>
+          </span>
+          <span class="${model.isFree ? 'mini-chip mini-chip-accent' : 'mini-chip mini-chip-warning'}">
+            ${model.isFree ? 'Free' : 'Paid'}
+          </span>
+        </button>
+      `)
       .join('');
 
     modelResults.classList.remove('hidden');

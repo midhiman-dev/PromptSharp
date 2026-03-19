@@ -4,31 +4,39 @@ import { savePrompt } from '../services/storage.js';
 
 export function initPromptCompare(container) {
   const component = createElement(`
-    <div class="hidden" id="compare-container">
-      <h2 class="font-semibold mb-3 text-gray-700">Comparison</h2>
-      <div class="flex flex-col md:flex-row gap-4">
-        <div class="flex-1 bg-white p-3 rounded shadow">
-          <h3 class="font-semibold mb-2 text-gray-700">Original Prompt</h3>
-          <pre id="original-prompt" class="whitespace-pre-wrap text-gray-800 min-h-[100px] max-h-[300px] overflow-y-auto">Your original prompt will appear here.</pre>
+    <section class="panel hidden" id="compare-container">
+      <div class="section-heading compact">
+        <div>
+          <span class="section-kicker">Output</span>
+          <h2 class="section-title">Before and after</h2>
+          <p class="section-description">Review the optimized version before copying or saving it.</p>
         </div>
-        <div class="flex-1 bg-blue-50 p-3 rounded shadow">
-          <h3 class="font-semibold mb-2 text-blue-700">Optimized Prompt</h3>
-          <pre id="optimized-prompt" class="whitespace-pre-wrap text-gray-900 min-h-[100px] max-h-[300px] overflow-y-auto">Your optimized prompt will appear here.</pre>
-          <div id="model-info" class="text-xs text-gray-500 mt-1 flex items-center">
-            <span class="inline-flex items-center px-2 py-1 rounded-full bg-blue-100 text-blue-800 text-xs mr-2">
-              <span class="h-2 w-2 bg-blue-500 rounded-full mr-1"></span>
-              <span id="model-name">Model</span>
-            </span>
-            <span id="model-provider" class="text-gray-500"></span>
+      </div>
+
+      <div class="compare-grid">
+        <div class="compare-card">
+          <h3 class="compare-title">Original prompt</h3>
+          <pre id="original-prompt" class="compare-content">Your original prompt will appear here.</pre>
+        </div>
+
+        <div class="compare-card compare-card-accent">
+          <h3 class="compare-title">Optimized prompt</h3>
+          <pre id="optimized-prompt" class="compare-content">Your optimized prompt will appear here.</pre>
+
+          <div id="model-info" class="result-meta hidden">
+            <span id="model-name" class="mini-chip mini-chip-accent">Model</span>
+            <span id="model-provider" class="result-provider"></span>
           </div>
-          <div id="guardrails-warning" class="hidden mt-2 p-2 bg-yellow-100 border border-yellow-300 rounded text-sm text-yellow-950"></div>
-          <div class="mt-3 flex gap-2">
-            <button id="copy-button" class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700" disabled>Copy</button>
-            <button id="save-button" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700" disabled>Save</button>
+
+          <div id="guardrails-warning" class="hidden notice-panel"></div>
+
+          <div class="action-row">
+            <button id="copy-button" class="primary-button" disabled>Copy result</button>
+            <button id="save-button" class="secondary-button" disabled>Save prompt</button>
           </div>
         </div>
       </div>
-    </div>
+    </section>
     <style>
       .hallucination {
         background-color: rgba(255, 240, 128, 0.3);
@@ -37,32 +45,32 @@ export function initPromptCompare(container) {
         cursor: help;
       }
       .redacted {
-        background-color: rgba(0, 0, 0, 0.1);
-        border-radius: 2px;
-        padding: 0 2px;
-        color: #666;
+        background-color: rgba(0, 0, 0, 0.08);
+        border-radius: 4px;
+        padding: 0 4px;
+        color: #475569;
         font-style: italic;
       }
       #guardrails-details {
-        margin-top: 8px;
+        margin-top: 10px;
       }
       .guardrail-issue {
-        margin-bottom: 4px;
-        padding: 4px;
-        border-radius: 4px;
+        margin-bottom: 8px;
+        padding: 10px 12px;
+        border-radius: 10px;
         color: #1f2937;
       }
       .guardrail-issue.toxicity {
-        background-color: rgba(248, 113, 113, 0.2);
+        background-color: rgba(248, 113, 113, 0.18);
       }
       .guardrail-issue.pii {
-        background-color: rgba(96, 165, 250, 0.2);
+        background-color: rgba(96, 165, 250, 0.18);
       }
       .guardrail-issue.hallucination {
         background-color: rgba(251, 191, 36, 0.2);
       }
       .guardrail-issue.logical_contradiction {
-        background-color: rgba(167, 139, 250, 0.2);
+        background-color: rgba(167, 139, 250, 0.18);
       }
     </style>
   `);
@@ -114,12 +122,12 @@ export function initPromptCompare(container) {
 
         modelName.textContent = displayName;
         modelProvider.textContent = providerName;
-        modelInfo.classList.remove('hidden');
       } else {
         modelName.textContent = model.replace(':free', '');
         modelProvider.textContent = '';
-        modelInfo.classList.remove('hidden');
       }
+
+      modelInfo.classList.remove('hidden');
     } else {
       modelInfo.classList.add('hidden');
     }
@@ -157,10 +165,10 @@ export function initPromptCompare(container) {
       .join('');
 
     if (issues.length > 0) {
-      warningHTML += `<div class="font-medium text-yellow-900">Guardrails activated</div>`;
+      warningHTML += '<div class="font-medium text-yellow-900">Guardrails activated</div>';
     }
 
-    warningHTML += `<div id="guardrails-details">`;
+    warningHTML += '<div id="guardrails-details">';
 
     issues.forEach((issue) => {
       const severity = issue.severity === 'high'
@@ -179,11 +187,11 @@ export function initPromptCompare(container) {
         }
 
         if (indicators.harmfulIntent) {
-          detailsHTML += `<div class="text-xs mt-1 text-gray-900">Harmful intent detected</div>`;
+          detailsHTML += '<div class="text-xs mt-1 text-gray-900">Harmful intent detected</div>';
         }
 
         if (indicators.targetedNegative) {
-          detailsHTML += `<div class="text-xs mt-1 text-gray-900">Targeted negative content detected</div>`;
+          detailsHTML += '<div class="text-xs mt-1 text-gray-900">Targeted negative content detected</div>';
         }
       }
 
@@ -195,7 +203,7 @@ export function initPromptCompare(container) {
       `;
     });
 
-    warningHTML += `</div>`;
+    warningHTML += '</div>';
     guardrailsWarning.innerHTML = warningHTML;
   }
 
@@ -210,7 +218,7 @@ export function initPromptCompare(container) {
       navigator.clipboard.writeText(text)
         .then(() => {
           const originalText = copyButton.textContent;
-          copyButton.textContent = 'Copied!';
+          copyButton.textContent = 'Copied';
           setTimeout(() => {
             copyButton.textContent = originalText;
           }, 2000);
@@ -236,7 +244,7 @@ export function initPromptCompare(container) {
       document.dispatchEvent(new CustomEvent('promptsaved'));
 
       const originalText = saveButton.textContent;
-      saveButton.textContent = 'Saved!';
+      saveButton.textContent = 'Saved';
       setTimeout(() => {
         saveButton.textContent = originalText;
       }, 2000);
