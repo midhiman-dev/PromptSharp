@@ -1,12 +1,12 @@
-# PromptSharp Quickstart
+# PromptSharp Static
 
 ## How to Use This Version
 
-Since we're having issues with npm installs, I've created a simplified all-in-one HTML file version of PromptSharp that requires no installation or build process.
+This folder contains the standalone static version of PromptSharp. It requires no installation or build process.
 
 ### To Run PromptSharp:
 
-1. Simply double-click the `all-in-one.html` file to open it in your browser
+1. Simply double-click the `index.html` file to open it in your browser
 2. Enter your OpenRouter API key (get one at https://openrouter.ai if you don't have one)
 3. Enter your prompt and click "Optimize"
 4. View, copy, and save your optimized prompts
