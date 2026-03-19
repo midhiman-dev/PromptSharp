@@ -1,6 +1,8 @@
 const axios = require('axios');
 const https = require('https');
 
+const allowInsecureSsl = process.env.ALLOW_INSECURE_SSL === 'true';
+
 // OpenRouter API integration
 const openRouterAPI = axios.create({
   baseURL: 'https://openrouter.ai/api/v1',
@@ -10,9 +12,9 @@ const openRouterAPI = axios.create({
     'HTTP-Referer': 'https://promptsharp.ai',
     'X-Title': 'PromptSharp'
   },
-  // Disable SSL verification temporarily to resolve certificate issues
+  // Keep TLS verification enabled by default in hosted environments.
   httpsAgent: new https.Agent({
-    rejectUnauthorized: false
+    rejectUnauthorized: !allowInsecureSsl
   })
 });
 
