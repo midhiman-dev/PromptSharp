@@ -7,6 +7,12 @@ PromptSharp is a prompt-optimization app with two usable entry points:
 
 It focuses on turning rough prompts into cleaner, more structured instructions while applying configurable safety checks.
 
+## Live Demo
+
+The standalone static deployment is live at:
+
+`https://promptsharp.netlify.app/`
+
 ## Current Features
 
 - Prompt optimization through OpenRouter models
@@ -87,7 +93,11 @@ PromptSharp/
 
 Use this when you want the quickest setup and do not want to run Node locally.
 
-1. Open `PromptSharp-static/index.html` in your browser.
+Live URL:
+
+`https://promptsharp.netlify.app/`
+
+1. Open the hosted app above, or open `PromptSharp-static/index.html` locally in your browser.
 2. Enter your OpenRouter API key.
 3. Paste a prompt and optimize it.
 4. Use `Clear key` if you only want to remove the saved API key.

@@ -1,12 +1,18 @@
 # PromptSharp Static
 
+## Live Demo
+
+The static app is live at:
+
+`https://promptsharp.netlify.app/`
+
 ## How to Use This Version
 
 This folder contains the standalone static version of PromptSharp. It requires no installation or build process.
 
 ### To Run PromptSharp:
 
-1. Simply double-click the `index.html` file to open it in your browser
+1. Open `https://promptsharp.netlify.app/`, or double-click the local `index.html` file to open it in your browser
 2. Enter your OpenRouter API key (get one at https://openrouter.ai if you don't have one)
 3. Enter your prompt and click "Optimize"
 4. View, copy, and save your optimized prompts
